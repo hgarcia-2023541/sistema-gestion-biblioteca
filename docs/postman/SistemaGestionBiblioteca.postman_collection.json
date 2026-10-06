@@ -1,0 +1,117 @@
+{
+  "info": {
+    "_postman_id": "b1b1b1b1-1111-4111-8111-111111111111",
+    "name": "Sistema de Gestion de Biblioteca",
+    "description": "Coleccion para probar el backend completo via API Gateway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8095" },
+    { "key": "tokenAdmin", "value": "" },
+    { "key": "tokenLector", "value": "" },
+    { "key": "tokenBiblio", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "libroId", "value": "1" },
+    { "key": "prestamoId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register LECTOR",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/api/v1/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Juan Perez\",\n  \"email\": \"juan@test.com\",\n  \"password\": \"Lector123*\"\n}" }
+          }
+        },
+        {
+          "name": "Login ADMIN",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/api/v1/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@biblioteca.com\",\n  \"password\": \"Admin123*\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["var r = pm.response.json(); pm.collectionVariables.set('tokenAdmin', r.token);"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "Login LECTOR",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/api/v1/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"juan@test.com\",\n  \"password\": \"Lector123*\"\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["var r = pm.response.json(); pm.collectionVariables.set('tokenLector', r.token); pm.collectionVariables.set('userId', r.userId);"], "type": "text/javascript" } }]
+        }
+      ]
+    },
+    {
+      "name": "Catalogo",
+      "item": [
+        {
+          "name": "Listar libros",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/libros", "header": [{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }] }
+        },
+        {
+          "name": "Obtener libro",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/libros/{{libroId}}", "header": [{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }] }
+        },
+        {
+          "name": "Crear libro",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/api/v1/libros",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isbn\": \"978-0134685991\",\n  \"titulo\": \"Effective Java\",\n  \"autor\": \"Joshua Bloch\",\n  \"categoria\": \"Programacion\",\n  \"stockTotal\": 3,\n  \"stockDisponible\": 3\n}" }
+          }
+        },
+        {
+          "name": "Actualizar libro",
+          "request": {
+            "method": "PUT", "url": "{{baseUrl}}/api/v1/libros/{{libroId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"isbn\": \"978-0132350884\",\n  \"titulo\": \"Clean Code\",\n  \"autor\": \"Robert C. Martin\",\n  \"categoria\": \"Programacion\",\n  \"stockTotal\": 5,\n  \"stockDisponible\": 5\n}" }
+          }
+        },
+        {
+          "name": "Eliminar libro",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/v1/libros/{{libroId}}", "header": [{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }] }
+        }
+      ]
+    },
+    {
+      "name": "Prestamos",
+      "item": [
+        {
+          "name": "Crear prestamo como ADMIN",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/api/v1/prestamos",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"libroId\": {{libroId}},\n  \"usuarioId\": {{userId}}\n}" }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["var r = pm.response.json(); pm.collectionVariables.set('prestamoId', r.id);"], "type": "text/javascript" } }]
+        },
+        {
+          "name": "Intentar crear prestamo como LECTOR (403)",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/api/v1/prestamos",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tokenLector}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"libroId\": {{libroId}}\n}" }
+          }
+        },
+        {
+          "name": "Mis prestamos (LECTOR)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/prestamos/mis-prestamos", "header": [{ "key": "Authorization", "value": "Bearer {{tokenLector}}" }] }
+        },
+        {
+          "name": "Devolver prestamo",
+          "request": { "method": "PATCH", "url": "{{baseUrl}}/api/v1/prestamos/{{prestamoId}}/devolucion", "header": [{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }], "body": { "mode": "raw", "raw": "{}" } }
+        },
+        {
+          "name": "Atrasados",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/prestamos/atrasados", "header": [{ "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }] }
+        }
+      ]
+    }
+  ]
+}
