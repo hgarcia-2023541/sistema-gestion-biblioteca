@@ -5,9 +5,9 @@ spring:
   application:
     name: catalog-service
   datasource:
-    url: ${CATALOG_DB_URL:jdbc:postgresql://localhost:5433/catalog_db}
-    username: ${DB_USERNAME:biblioteca_user}
-    password: ${DB_PASSWORD:cambia_esta_password}
+    url: ${CATALOG_DB_URL:jdbc:postgresql://localhost:5432/catalog_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:admin}
   jpa:
     hibernate:
       ddl-auto: validate

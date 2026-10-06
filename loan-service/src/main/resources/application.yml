@@ -5,9 +5,9 @@ spring:
   application:
     name: loan-service
   datasource:
-    url: ${LOAN_DB_URL:jdbc:postgresql://localhost:5433/loan_db}
-    username: ${DB_USERNAME:biblioteca_user}
-    password: ${DB_PASSWORD:cambia_esta_password}
+    url: ${LOAN_DB_URL:jdbc:postgresql://localhost:5432/loan_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:admin}
   jpa:
     hibernate:
       ddl-auto: validate
