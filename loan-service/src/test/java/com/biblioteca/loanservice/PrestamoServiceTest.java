@@ -67,9 +67,7 @@ class PrestamoServiceTest {
     @Test
     void lectorCon3ActivosNoPuedePrestar() {
         when(usuarioClient.obtenerUsuario(1L)).thenReturn(Map.of("id", 1, "estado", "ACTIVO"));
-        when(repository.findByUsuarioIdAndEstadoAndFechaDevolucionEsperadaBefore(eq(1L), eq(EstadoPrestamo.ACTIVO), any()))
-                .thenReturn(List.of());
-        when(repository.countByUsuarioIdAndEstado(1L, EstadoPrestamo.ATRASADO)).thenReturn(0L);
+        when(repository.countByUsuarioIdAndEstado(anyLong(), any())).thenReturn(0L);
         when(repository.countByUsuarioIdAndEstado(1L, EstadoPrestamo.ACTIVO)).thenReturn(3L);
         assertThrows(BusinessRuleException.class, () -> service.crear(req(1L), 1L, "LECTOR"));
     }
@@ -77,8 +75,6 @@ class PrestamoServiceTest {
     @Test
     void prestamoExitosoCalcula14Dias() {
         when(usuarioClient.obtenerUsuario(1L)).thenReturn(Map.of("id", 1, "estado", "ACTIVO"));
-        when(repository.findByUsuarioIdAndEstadoAndFechaDevolucionEsperadaBefore(eq(1L), eq(EstadoPrestamo.ACTIVO), any()))
-                .thenReturn(List.of());
         when(repository.countByUsuarioIdAndEstado(anyLong(), any())).thenReturn(0L);
         when(libroClient.obtenerLibro(2L)).thenReturn(Map.of("id", 2));
         when(repository.save(any(Prestamo.class))).thenAnswer(inv -> inv.getArgument(0));
