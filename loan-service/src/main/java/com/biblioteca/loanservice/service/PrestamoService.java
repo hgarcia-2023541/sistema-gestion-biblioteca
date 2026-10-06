@@ -27,13 +27,16 @@ public class PrestamoService {
     private final UsuarioClient usuarioClient;
     private final LibroClient libroClient;
     private final EntityManager entityManager;
+    private final PrestamoEstadoService prestamoEstadoService;
 
     public PrestamoService(PrestamoRepository repository, UsuarioClient usuarioClient,
-                           LibroClient libroClient, EntityManager entityManager) {
+                           LibroClient libroClient, EntityManager entityManager,
+                           PrestamoEstadoService prestamoEstadoService) {
         this.repository = repository;
         this.usuarioClient = usuarioClient;
         this.libroClient = libroClient;
         this.entityManager = entityManager;
+        this.prestamoEstadoService = prestamoEstadoService;
     }
 
     @Transactional
@@ -54,14 +57,12 @@ public class PrestamoService {
             throw new BusinessRuleException("El usuario está sancionado y no puede solicitar préstamos");
         }
 
-        // Regla 5: si tiene préstamos atrasados (activos ya vencidos o marcados ATRASADO),
-        // se sanciona al usuario y se rechaza el nuevo préstamo
         LocalDate hoy = LocalDate.now();
-        List<Prestamo> vencidosActivos = repository
-                .findByUsuarioIdAndEstadoAndFechaDevolucionEsperadaBefore(usuarioId, EstadoPrestamo.ACTIVO, hoy);
-        vencidosActivos.forEach(p -> p.setEstado(EstadoPrestamo.ATRASADO));
-        long atrasadosPrevios = repository.countByUsuarioIdAndEstado(usuarioId, EstadoPrestamo.ATRASADO);
-        if (!vencidosActivos.isEmpty() || atrasadosPrevios > 0) {
+        // Regla: si tiene préstamos vencidos, pasan a ATRASADO (persiste en BD) y
+        // se sanciona al usuario rechazando el nuevo préstamo
+        prestamoEstadoService.marcarVencidos(usuarioId);
+        long atrasados = repository.countByUsuarioIdAndEstado(usuarioId, EstadoPrestamo.ATRASADO);
+        if (atrasados > 0) {
             usuarioClient.sancionar(usuarioId);
             throw new BusinessRuleException("El usuario tiene préstamos atrasados. Ha sido sancionado.");
         }

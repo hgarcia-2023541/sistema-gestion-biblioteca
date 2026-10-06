@@ -34,6 +34,7 @@ class PrestamoServiceTest {
     @Mock LibroClient libroClient;
     @Mock EntityManager entityManager;
     @Mock Query lockQuery;
+    @Mock com.biblioteca.loanservice.service.PrestamoEstadoService prestamoEstadoService;
 
     @InjectMocks PrestamoService service;
 
